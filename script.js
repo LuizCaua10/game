@@ -1,195 +1,114 @@
-var carred = document.getElementById("red")//carro vermelho
-var carwhite = document.getElementById("white")//carro branco
-var btnwhite = document.getElementById("branco")//btn para selecionar carro branco
-var btnverm = document.getElementById("vermelho")//btn para selecionar carro vermelho
-var result = document.getElementById("result")//btn resultado
-var btns = document.getElementsByClassName("btn")
-var resetar = document.getElementById("resetar")//btn resetar
-var acelerar = document.getElementById("acelerar")//btn acelerar
-var desacelerar = document.getElementById("desacelerar")//btn desacelerar
-//carro vermelho function
-carred.addEventListener("click", function(){
-    var right = parseInt(window.getComputedStyle(carred).right)
-    result.textContent = "Vermalho!"
-    document.body.style.background = "red"
-    document.body.style.color = "black"
+// === ELEMENTOS ===
+const carRed = document.getElementById("red")
+const carWhite = document.getElementById("white")
+const btnRed = document.getElementById("vermelho")
+const btnWhite = document.getElementById("branco")
+const result = document.getElementById("result")
+const resetBtn = document.getElementById("resetar")
+const acelerarBtn = document.getElementById("acelerar")
+const desacelerarBtn = document.getElementById("desacelerar")
+const btns = document.querySelectorAll(".btn")
+const engine = document.getElementById("engine")
 
-    for(i=0; i<=2;i++){
-        btns[i].style.display = "block"
-    }
-})
-//resetar function
-resetar.addEventListener("click", function(){
-    document.body.style.backgroundColor = "black"
-    document.body.style.color = "white"
-    result.textContent = "?"
-    for(i=0; i<=2;i++){
-        btns[i].style.display = "none"
-    var top = parseInt(window.getComputedStyle(carred).top)
-    carred.style.top = "60px"
-    carred.style.width = "50px"
-    carred.style.height = "50px"
-    carred.style.right = "205px"
-    carwhite.style.top = "60px"
-    carwhite.style.width = "50px"
-    carwhite.style.height = "50px"
-    carwhite.style.left = "205px"
+// === ESTADO POR CARRO ===
+const estado = {
+  branco: { profundidade: 0 },
+  vermelho: { profundidade: 0 }
+}
 
-    }
-})
+// === SELECIONAR CARRO ===
+function selecionarCarro(cor) {
+  carroSelecionado = cor
+  result.textContent = cor
+  document.body.style.backgroundColor = cor === "Branco" ? "#f0f0f0" : "#ff3b3b"
+  document.body.style.color = "black"
 
-//btn carro vermelho function
-btnverm.addEventListener("click", function(){
-    var right = parseInt(window.getComputedStyle(carred).right)
-    result.textContent = "Vermelho!"
-    document.body.style.background = "red"
-    document.body.style.color = "black"
+  btns.forEach(btn => btn.style.display = "inline-block")
+  engine.pause()
+}
 
-    for(i=0; i<=2;i++){
-        btns[i].style.display = "block"
-    }
+// === RESETAR TUDO ===
+resetBtn.addEventListener("click", () => {
+  carroSelecionado = null
+  result.textContent = "?"
+  document.body.style.backgroundColor = "black"
+  document.body.style.color = "white"
+  btns.forEach(btn => btn.style.display = "none")
+
+  estado.branco.profundidade = 0
+  estado.vermelho.profundidade = 0
+  resetarCarros()
+  engine.pause()
 })
 
-//carro branco function
-carwhite.addEventListener("click", function(){
-    var right = parseInt(window.getComputedStyle(carred).left)
-    result.textContent = "Branco!"
-    document.body.style.background = "white"
-    document.body.style.color = "black"
+// === RESETAR POSIÇÃO DOS CARROS ===
+function resetarCarros() {
+  carWhite.style.transform = "translateX(0) translateY(0) scale(1)"
+  carRed.style.transform = "translateX(0) translateY(0) scale(1)"
+}
 
-    for(i=0; i<=2;i++){
-        btns[i].style.display = "block"
-    }
+// === MOVIMENTO DO CARRO BRANCO ===
+function moverBranco() {
+  const p = estado.branco.profundidade
+  const scale = 1 - (p / 200)
+  const y = -p * 0.7
+  const x = p * 0.20
+  carWhite.style.transform = `translateX(${x}px) translateY(${y}px) scale(${scale})`
+}
+
+// === MOVIMENTO DO CARRO VERMELHO ===
+function moverVermelho() {
+  const p = estado.vermelho.profundidade
+  const scale = 1 - (p / 200)
+  const y = -p * 0.7
+  const x = p * 0.-20
+  carRed.style.transform = `translateX(${x}px) translateY(${y}px) scale(${scale})`
+}
+
+// === ACELERAR ===
+acelerarBtn.addEventListener("click", () => {
+  if (!carroSelecionado) return
+
+  if (carroSelecionado === "Branco") {
+    estado.branco.profundidade = Math.min(100, estado.branco.profundidade + 12)
+    moverBranco()
+  } else {
+    estado.vermelho.profundidade = Math.min(100, estado.vermelho.profundidade + 12)
+    moverVermelho()
+  }
+  engine.play().catch(() => {})
 })
-//btn carro branco function
-btnwhite.addEventListener("click", function(){
-    var right = parseInt(window.getComputedStyle(carred).left)
-    result.textContent = "Branco!"
-    document.body.style.background = "white"
-    document.body.style.color = "black"
 
-    for(i=0; i<=2;i++){
-        btns[i].style.display = "block"
-    }
+// === DESACELERAR ===
+desacelerarBtn.addEventListener("click", () => {
+  if (!carroSelecionado) return
+
+  if (carroSelecionado === "Branco") {
+    estado.branco.profundidade = Math.max(0, estado.branco.profundidade - 10)
+    moverBranco()
+  } else {
+    estado.vermelho.profundidade = Math.max(0, estado.vermelho.profundidade - 10)
+    moverVermelho()
+  }
+
+  if ((carroSelecionado === "Branco" && estado.branco.profundidade === 0) ||
+      (carroSelecionado === "Vermelho" && estado.vermelho.profundidade === 0)) {
+    engine.pause()
+  }
 })
-//movimento do carro vermelho
-document.addEventListener("keydown",function(event){
-        console.log(event)
-    
-    if (event.key === "ArrowUp" && result.textContent === "Vermalho!") { 
-        
-        var top = parseInt(window.getComputedStyle(carred).top)
-        
-        top = top - 5 
-        
-        carred.style.top = top + "px"
-    }
 
-    if (event.key === "ArrowDown" && result.textContent === "Vermalho!") { 
-        
-        var top = parseInt(window.getComputedStyle(carred).top)
+// === EVENTOS DE SELEÇÃO ===
+btnWhite.addEventListener("click", () => selecionarCarro("Branco"))
+btnRed.addEventListener("click", () => selecionarCarro("Vermelho"))
+carWhite.addEventListener("click", () => selecionarCarro("Branco"))
+carRed.addEventListener("click", () => selecionarCarro("Vermelho"))
 
-        top = top + 5
-
-        carred.style.top = top + "px"
-
-    }
-    if (event.key === "ArrowDown" && result.textContent === "Vermalho!") { 
-        
-        var height = parseInt(window.getComputedStyle(carred).height)
-
-        height = height + 6
-
-        carred.style.height = height + "px"
-    }
-      if (event.key === "ArrowUp" && result.textContent === "Vermalho!") {
-
-        var height = parseInt(window.getComputedStyle(carred).height)
-
-        height = height - 6
-
-        carred.style.height = height + "px"
-
-    } //movimento do carro branco
-    
-    if (event.key === "ArrowUp" && result.textContent === "Branco!") { 
-        
-        var top = parseInt(window.getComputedStyle(carwhite).top)
-        
-        top = top - 6
-        
-        carwhite.style.top = top + "px"
-    }
-
-    if (event.key === "ArrowDown" && result.textContent === "Branco!") { 
-        
-        var top = parseInt(window.getComputedStyle(carwhite).top)
-
-        top = top + 6
-
-        carwhite.style.top = top + "px"
-
-    }
-    if (event.key === "ArrowDown" && result.textContent === "Branco!") { 
-        
-        var width = parseInt(window.getComputedStyle(carwhite).width)
-
-        width = width + 5
-
-        carwhite.style.width = width + "px"
-    }
-    if (event.key === "ArrowUp" && result.textContent === "Branco!") {
-
-        var width = parseInt(window.getComputedStyle(carwhite).width)
-
-        width = width - 5
-
-        carwhite.style.width = width + "px"
-    }
-    if (event.key === "ArrowUp" && result.textContent === "Branco!") {
-        var left = parseInt(window.getComputedStyle(carwhite).left)
-        
-        left = left + 5
-
-        carwhite.style.left = left + "px"
-
-    }
-    if (event.key === "ArrowDown" && result.textContent === "Branco!") {
-        var left = parseInt(window.getComputedStyle(carwhite).left)
-        
-        left = left - 5
-
-        carwhite.style.left = left + "px"
-
-    }
+// === TECLADO ===
+document.addEventListener("keydown", e => {
+  if (!carroSelecionado) return
+  if (e.key === "ArrowUp") acelerarBtn.click()
+  if (e.key === "ArrowDown") desacelerarBtn.click()
 })
-acelerar.addEventListener("click",function(){
-    var carroSelecionado = result.textContent;
 
-    if (carroSelecionado === "Vermelho!") {
-        var topRed = parseInt(window.getComputedStyle(carred).top);
-        top = top - 5; 
-        carred.style.top = top + "px";
-
-        var height = parseInt(window.getComputedStyle(carred).height);
-        height = height + 6;
-        carred.style.height = height + "px";
-
-        var width = parseInt(window.getComputedStyle(carred).width);
-        width = width + 6; 
-        carred.style.width = width + "px";
-
-    } else if (carroSelecionado === "Branco!") {
-        var top = parseInt(window.getComputedStyle(carwhite).top);
-        top = top - 5; 
-        carwhite.style.top = top + "px";
-
-        var heightWhite = parseInt(window.getComputedStyle(carwhite).height);
-        height = height + 6;
-        carwhite.style.height = height + "px";
-        
-        var width = parseInt(window.getComputedStyle(carwhite).width);
-        width = width + 6; 
-        carwhite.style.width = width + "px";
-    }
-})
+// === INICIAR ===
+resetarCarros()
